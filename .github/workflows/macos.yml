@@ -1,0 +1,70 @@
+name: MacOS
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+    defaults:
+      run:
+        # Use bash login shell sourcing ~/.bash_profile
+        # Keep exit code when using pipes.
+        shell: bash -leo pipefail {0}
+    env:
+      CC: clang
+      CXX: clang++
+      QT_SELECT: qt6
+    steps:
+
+      - name: Environment Variables
+        run: |
+          echo "RELEASE=$(uname -r)" >> $GITHUB_ENV
+          echo
+
+      - name: Install packages
+        run: |
+          brew untap aws/tap
+          brew install gnu-sed
+          echo "/opt/homebrew/opt/gnu-sed/libexec/gnubin" >> $GITHUB_PATH
+
+      - name: Context
+        run: |
+          CCVER='/[^0-9]([0-9]+\.[0-9]+\.[0-9]+)/p;q'
+          uname -a
+          sysctl hw.physicalcpu
+          sysctl hw.logicalcpu
+          echo "SHELL:" $SHELL
+          VER=`$CC --version | sed -nE $CCVER`
+          echo "C compiler version:" $VER
+          VER=`$CXX --version | sed -nE $CCVER`
+          echo "C++ compiler version:" $VER
+          echo "Qt version:" $QT_SELECT
+          echo "Runner arch:" $RUNNER_ARCH
+          echo "Runner OS:" $RUNNER_OS
+          echo "Shell:" $SHELL
+          echo "PATH:" $PATH
+          echo `sed --version | sed -ne "/^sed.*[0-9]\+\.[0-9]\+/p;q"`
+          cmake --version
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: 'true'
+
+      - name: Configure
+        run: |
+          mkdir .build
+          cd .build
+          cmake .. -DCMAKE_INSTALL_PREFIX:PATH=$HOME/usr -DCMAKE_INSTALL_SYSCONFDIR=$HOME/etc
+      - name: Make
+        run: cd .build; make -j5
+
+      - name: Test
+        run: |
+          ./.build/src/PlatformCompatibilityTests
+          cd .build; make -j5 test; cd ..
+          otool -L .build/src/PlatformCompatibilityTests
+

@@ -1,0 +1,88 @@
+name: FreeBSD
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: FreeBSD ${{ matrix.osversion }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        osversion: ['13.5', '14.4', '15.1']
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - name: Run FreeBSD VM
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: ${{ matrix.osversion }}
+          usesh: true
+          sync: rsync
+          arch: x86_64
+          mem: 4096
+          prepare: |
+            echo "==== timestamp" `date`
+            pkg update -f
+            pkg install -y sudo pkgconf libtool cmake ninja git
+            echo "==== timestamp" `date`
+
+          run: |
+            set -e
+            echo "=== System Information ==="
+            echo "OS: " `uname -sr`
+            sysctl -a | egrep -i 'hw.machine|hw.model|hw.ncpu|threads_per_core'
+            echo "whoami: " `whoami`
+            echo "pwd:" `pwd`
+            echo "SHELL: " $SHELL
+            echo "PATH: " $PATH
+            echo "==== VERSIONS ===="
+            cmake --version
+            echo "ninja version" `ninja --version`
+            clang --version
+            clang++ --version
+            echo "==== MANUALLY INSTALLED PACKAGES ===="
+            pkg prime-list
+            echo "==== END ===="
+
+            echo "=== Creating build user ==="
+            pw groupadd -n user
+            pw useradd -n user -d /home/user -s /bin/sh -G wheel
+            mkdir -p /home/user
+            chown -R user:user /home/user
+            chown -R user:user .
+            echo "passwd line for user: " `cat /etc/passwd | grep "^user:"`
+
+            echo "=== Configuring ==="
+            sudo -u user sh -c '
+              echo "==== timestamp" `date`
+              mkdir -p .build
+              cd .build
+              cmake .. -G Ninja \
+                -DCMAKE_INSTALL_PREFIX:PATH=$HOME/usr \
+                -DCMAKE_INSTALL_SYSCONFDIR=$HOME/etc \
+                -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+            '
+
+            echo "=== Building ==="
+            sudo -u user sh -c '
+              cd .build
+              echo "==== timestamp" `date`
+              ninja'
+
+            echo "=== Testing ==="
+            sudo -u user sh -ec '
+              cd .build
+              echo "==== timestamp" `date`
+              ./src/PlatformCompatibilityTests
+              ctest -V
+              ldd src/PlatformCompatibilityTests
+              echo "==== timestamp" `date`
+            '
