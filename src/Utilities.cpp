@@ -30,7 +30,7 @@ extern std::string ToLower(std::string src)
 {
     std::transform(src.begin(), src.end(), src.begin(),
                    [](unsigned char c){
-                       return std::tolower(c);
+                       return static_cast<char>(std::tolower(c));
                    });
     return src;
 }
@@ -39,7 +39,7 @@ extern std::string ToUpper(std::string src)
 {
     std::transform(src.begin(), src.end(), src.begin(),
                    [](unsigned char c){
-                       return std::toupper(c);
+                       return static_cast<char>(std::toupper(c));
                    });
     return src;
 }

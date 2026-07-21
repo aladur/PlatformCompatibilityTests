@@ -6,6 +6,7 @@ This project is compiled and executed on the following platforms using github ac
 
 | OS          | Build Status |
 |-------------|--------------|
+ | Windows    | [![github actions](https://github.com/aladur/PlatformCompatibilityTests/actions/workflows/windows.yml/badge.svg?branch=main)](https://github.com/aladur/fPlatformCompatibilityTests/actions/workflows/windows.yml) |
  | Linux      | [![github actions](https://github.com/aladur/PlatformCompatibilityTests/actions/workflows/linux.yml/badge.svg?branch=main)](https://github.com/aladur/fPlatformCompatibilityTests/actions/workflows/linux.yml) |
  | MacOS      | [![github actions](https://github.com/aladur/PlatformCompatibilityTests/actions/workflows/macos.yml/badge.svg?branch=main)](https://github.com/aladur/PlatformCompatibilityTests/actions/workflows/macos.yml) |
  | FreeBSD    | [![github actions](https://github.com/aladur/PlatformCompatibilityTests/actions/workflows/freebsd.yml/badge.svg?branch=main)](https://github.com/aladur/PlatformCompatibilityTests/actions/workflows/freebsd.yml) |

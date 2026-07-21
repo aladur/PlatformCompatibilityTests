@@ -1,0 +1,36 @@
+name: Windows
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    strategy:
+      matrix:
+        os: [ windows-2022 ]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    environment: development
+    steps:
+
+      - name: Context
+        run: |
+          echo OS ${{ matrix.os }}
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Configure
+        run: |
+          cmake -S . -B .build -G "Visual Studio 17 2022" -A x64 -DCMAKE_VERBOSE_MAKEFILE=ON
+
+      - name: Make
+        run: cmake --build .build
+
+      - name: Test
+        run: |
+          cd .build
+          src/Debug/PlatformCompatibilityTests.exe
+          test/Debug/PCTUnittest.exe

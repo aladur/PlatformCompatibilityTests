@@ -24,37 +24,91 @@ SOFTWARE.
 
 #include "HostNameUtilities.h"
 #include <string>
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <iphlpapi.h>
+#else
 #include <unistd.h>
 #include <limits.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#endif
+
+#ifdef _WIN32
+#pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "iphlpapi.lib")
+#endif
 
 #ifndef HOST_NAME_MAX
-    #ifdef _POSIX_HOST_NAME_MAX
-        #define HOST_NAME_MAX _POSIX_HOST_NAME_MAX
-    #else
-        #define HOST_NAME_MAX 255 // use safe default
-    #endif
+#ifdef _POSIX_HOST_NAME_MAX
+#define HOST_NAME_MAX _POSIX_HOST_NAME_MAX
+#else
+#define HOST_NAME_MAX 255 // use safe default
 #endif
+#endif
+
+#ifdef _WIN32
+WSADATA wsaData{};
+#endif
+int wsaInitResult{};
+
+int Initialize()
+{
+#ifdef _WIN32
+    if (!wsaData.wVersion && !wsaData.wHighVersion)
+    {
+        wsaInitResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    }
+#endif
+
+    return wsaInitResult;
+}
 
 std::string GetHostName()
 {
-#ifndef _WIN32
     char buffer[HOST_NAME_MAX + 1U]{};
 
-    if (gethostname(buffer, sizeof(buffer)) == 0)
+    if (!Initialize() && gethostname(buffer, sizeof(buffer)) == 0)
     {
         return buffer;
     }
-#endif
 
     return {};
 }
 
 std::string GetDomainName()
 {
-#ifndef _WIN32
+#ifdef _WIN32
+    FIXED_INFO* pFixedInfo = nullptr;
+    ULONG ulOutBufLen = 0U;
+
+    if (GetNetworkParams(nullptr, &ulOutBufLen) != ERROR_BUFFER_OVERFLOW)
+    {
+        return {};
+    }
+
+    pFixedInfo = static_cast<FIXED_INFO*>(malloc(ulOutBufLen));
+    if (pFixedInfo == nullptr)
+    {
+        return {};
+    }
+
+    if (GetNetworkParams(pFixedInfo, &ulOutBufLen) != NO_ERROR)
+    {
+        free(pFixedInfo);
+        return {};
+    }
+
+    std::string result = pFixedInfo->DomainName;
+    free(pFixedInfo);
+
+    if (!result.empty() && result != "(none)")
+    {
+        return result;
+    }
+#else
     char buffer[HOST_NAME_MAX + 1U]{};
 
     if (getdomainname(buffer, sizeof(buffer)) == 0 &&
@@ -97,8 +151,12 @@ std::string GetFullyQualifiedDomainName()
 
 std::string ExecuteCommand(const char *command)
 {
-#ifndef _WIN32
     std::string result;
+
+#ifdef _WIN32
+#define popen _popen
+#define pclose _pclose
+#endif
     FILE *fp = popen(command, "r");
 
     if (fp != nullptr)
@@ -121,33 +179,38 @@ std::string ExecuteCommand(const char *command)
             result.resize(pos);
         }
     }
-#endif
 
     return result;
 }
+
 std::string GetHostNameCLI()
 {
-#ifndef _WIN32
-    return ExecuteCommand("hostname 2>/dev/null");
+#ifdef _WIN32
+    const char* command = "hostname 2>nul";
+#else
+    const char* command = "hostname 2>/dev/null";
 #endif
 
-    return {};
+    return ExecuteCommand(command);
 }
 
 std::string GetDomainNameCLI()
 {
-#ifndef _WIN32
+#ifdef _WIN32
+    return {};
+#else
     return ExecuteCommand("hostname -d 2>/dev/null");
 #endif
-    return {};
 }
 
 std::string GetFullyQualifiedDomainNameCLI()
 {
-#ifndef _WIN32
-    return ExecuteCommand("hostname -f 2>/dev/null || hostname 2>/dev/null");
+#ifdef _WIN32
+    const char* command = "hostname 2>nul";
+#else
+    const char* command = "hostname -f 2>/dev/null || hostname 2>/dev/null";
 #endif
 
-    return {};
+    return ExecuteCommand(command);
 }
 
