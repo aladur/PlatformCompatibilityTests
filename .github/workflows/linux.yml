@@ -9,7 +9,7 @@ jobs:
   build-and-test:
     strategy:
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-22.04, ubuntu-latest ]
       fail-fast: false
     runs-on: ${{ matrix.os }}
     defaults:
@@ -31,7 +31,6 @@ jobs:
           submodules: 'true'
 
       - name: Install packages
-        if: ${{ matrix.qt-version == 5 }}
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential ninja-build

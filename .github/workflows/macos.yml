@@ -7,7 +7,11 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: macos-latest
+    strategy:
+      matrix:
+        os: [ macos-14, macos-latest ]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
     defaults:
       run:
         # Use bash login shell sourcing ~/.bash_profile
@@ -16,7 +20,6 @@ jobs:
     env:
       CC: clang
       CXX: clang++
-      QT_SELECT: qt6
     steps:
 
       - name: Environment Variables
