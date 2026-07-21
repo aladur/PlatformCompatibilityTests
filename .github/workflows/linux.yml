@@ -47,5 +47,5 @@ jobs:
         run: |
           cd .build
           ./src/PlatformCompatibilityTests
-          ctest
+          ./test/PCTUnittest
           ldd src/PlatformCompatibilityTests

@@ -82,7 +82,7 @@ jobs:
               cd .build
               echo "==== timestamp" `date`
               ./src/PlatformCompatibilityTests
-              ctest -V
+              ./test/PCTUnittest
               ldd src/PlatformCompatibilityTests
               echo "==== timestamp" `date`
             '
