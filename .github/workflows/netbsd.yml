@@ -1,0 +1,83 @@
+name: NetBSD
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: NetBSD ${{ matrix.osversion }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        osversion: ['10.1']
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - name: Run NetBSD VM
+        uses: vmactions/netbsd-vm@v1
+        with:
+          release: ${{ matrix.osversion }}
+          usesh: true
+          sync: rsync
+          arch: x86_64
+          mem: 4096
+          prepare: |
+            echo "==== timestamp" `date`
+            pkg_add -u pkgin
+            pkgin -y update
+            pkgin -y install sudo libtool cmake ninja-build git
+            echo "==== timestamp" `date`
+
+          run: |
+            set -e
+            echo "=== System Information ==="
+            echo "OS: " `uname -sr`
+            sysctl -a | egrep -i 'hw.machine|hw.model|hw.ncpu|threads_per_core'
+            echo "whoami: " `whoami`
+            echo "pwd:" `pwd`
+            echo "SHELL: " $SHELL
+            echo "PATH: " $PATH
+            echo "==== VERSIONS ===="
+            cmake --version
+            echo "ninja version" `ninja --version`
+            echo "==== ENVIRONMENT ===="
+            env
+            echo "==== END ===="
+
+            echo "=== Creating build user ==="
+            useradd -m -s /bin/ksh -G wheel user
+            mkdir -p /home/user
+            chown -R user:wheel /home/user
+            chown -R user:wheel .
+            echo "passwd line for user: " `cat /etc/passwd | grep "^user:"`
+
+            echo "=== Configuring ==="
+            sudo -u user sh -c '
+              echo "==== timestamp" `date`
+              mkdir -p .build
+              cd .build
+              cmake .. -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+            '
+
+            echo "=== Building ==="
+            sudo -u user sh -c '
+              cd .build
+              echo "==== timestamp" `date`
+              ninja'
+
+            echo "=== Testing ==="
+            sudo -u user sh -ec '
+              cd .build
+              echo "==== timestamp" `date`
+              ./src/PlatformCompatibilityTests
+              ./test/PCTUnittest
+              ldd src/PlatformCompatibilityTests
+              echo "==== timestamp" `date`
+            '
