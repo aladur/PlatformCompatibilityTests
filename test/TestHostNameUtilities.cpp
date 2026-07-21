@@ -39,16 +39,16 @@ TEST(TestHostNameUtilities, FullyQualifiedDomainNameCLI)
 
 TEST(TestHostNameUtilities, CrossCheck)
 {
-    auto name = ToLower(GetHostName());
-    auto nameCLI = ToLower(GetHostNameCLI());
+    auto name = ToUpper(GetHostName());
+    auto nameCLI = ToUpper(GetHostNameCLI());
     EXPECT_EQ(name, nameCLI);
 
-    name = ToLower(GetDomainName());
-    nameCLI = ToLower(GetDomainNameCLI());
+    name = ToUpper(GetDomainName());
+    nameCLI = ToUpper(GetDomainNameCLI());
     //EXPECT_EQ(name, nameCLI);
 
-    name = ToLower(GetFullyQualifiedDomainName());
-    nameCLI = ToLower(GetFullyQualifiedDomainNameCLI());
+    name = ToUpper(GetFullyQualifiedDomainName());
+    nameCLI = ToUpper(GetFullyQualifiedDomainNameCLI());
     EXPECT_EQ(name, nameCLI);
 }
 

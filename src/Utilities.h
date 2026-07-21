@@ -28,5 +28,6 @@ SOFTWARE.
 #include <string>
 
 extern std::string ToLower(std::string src);
+extern std::string ToUpper(std::string src);
 
 #endif

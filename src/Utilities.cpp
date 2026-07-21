@@ -35,3 +35,12 @@ extern std::string ToLower(std::string src)
     return src;
 }
 
+extern std::string ToUpper(std::string src)
+{
+    std::transform(src.begin(), src.end(), src.begin(),
+                   [](unsigned char c){
+                       return std::toupper(c);
+                   });
+    return src;
+}
+
