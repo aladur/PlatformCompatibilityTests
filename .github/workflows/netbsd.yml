@@ -33,6 +33,7 @@ jobs:
             pkg_add -u pkgin
             pkgin -y update
             pkgin -y install sudo libtool cmake ninja-build git
+            echo "127.0.0.1 localhost myhost.serverfarm.com" >> /etc/hosts
             echo "==== timestamp" `date`
 
           run: |
@@ -76,7 +77,8 @@ jobs:
             sudo -u user sh -ec '
               cd .build
               echo "==== timestamp" `date`
-              ./src/PlatformCompatibilityTests
+              ./src/PlatformCompatibilityTests localhost
+              ./src/PlatformCompatibilityTests myhost.serverfarm.com
               ./test/PCTUnittest
               ldd src/PlatformCompatibilityTests
               echo "==== timestamp" `date`

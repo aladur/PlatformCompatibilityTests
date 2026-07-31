@@ -32,5 +32,8 @@ jobs:
       - name: Test
         run: |
           cd .build
-          src/Debug/PlatformCompatibilityTests.exe
+          ECHO "127.0.0.1 localhost myhost.serverfarm.com" >> C:\Windows\System32\drivers\etc\hosts
+          TYPE C:\Windows\System32\drivers\etc\hosts
+          src/Debug/PlatformCompatibilityTests.exe localhost
+          src/Debug/PlatformCompatibilityTests.exe myhost.serverfarm.com
           test/Debug/PCTUnittest.exe

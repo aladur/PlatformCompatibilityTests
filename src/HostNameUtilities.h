@@ -33,6 +33,8 @@ extern std::string GetDomainName();
 extern std::string GetDomainNameCLI();
 extern std::string GetFullyQualifiedDomainName();
 extern std::string GetFullyQualifiedDomainNameCLI();
+extern std::string ExecuteCommand(const char *command);
+extern bool CanResolveHostName(const std::string &hostName);
 
 #endif
 

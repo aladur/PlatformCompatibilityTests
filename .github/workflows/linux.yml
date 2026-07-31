@@ -45,6 +45,8 @@ jobs:
       - name: Test
         run: |
           cd .build
-          ./src/PlatformCompatibilityTests
+          sudo sed -i "s/\(localhost\)/\1 myhost.serverfarm.com/" /etc/hosts
+          ./src/PlatformCompatibilityTests localhost
+          ./src/PlatformCompatibilityTests myhost.serverfarm.com
           ./test/PCTUnittest
           ldd src/PlatformCompatibilityTests

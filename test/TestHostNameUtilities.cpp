@@ -58,3 +58,8 @@ TEST(TestHostNameUtilities, CrossCheck)
 }
 #endif
 
+TEST(TestHostNameUtilities, CanResolveHostName)
+{
+    auto result = CanResolveHostName("localhost");
+    EXPECT_TRUE(result);
+}

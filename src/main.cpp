@@ -23,10 +23,20 @@ SOFTWARE.
 */
 
 #include "HostNameUtilities.h"
+#include <ios>
 #include <iostream>
 
-int main(int /*argc*/, char ** /*argv*/)
+int main(int argc, char **argv)
 {
+    if (argc != 2)
+    {
+        std::cerr <<
+            "Syntax:\n"
+            "    PlatformCompatibilityTests <host_name>\n";
+        return 1;
+    }
+
+    std::string hostName = argv[1];
     std::cout <<
         "HostNameUtilities" << std::endl <<
         " hostname=" << GetHostName() << std::endl <<
@@ -36,7 +46,22 @@ int main(int /*argc*/, char ** /*argv*/)
         " fullyqualifieddomainname=" << GetFullyQualifiedDomainName() <<
         std::endl <<
         " fullyqualifieddomainnameCLI=" << GetFullyQualifiedDomainNameCLI() <<
+        std::endl <<
+        " canresolvehostname=" << std::boolalpha <<
+            CanResolveHostName(hostName) << " hostname=" << hostName <<
         std::endl;
+
+#ifdef _WIN32
+    const char *hostsFile = "C:\\\\Windows\\\\System32\\\\drivers\\\\etc\\\\hosts";
+    std::string command = std::string("type ") + hostsFile;
+#else
+    const char *hostsFile = "/etc/hosts";
+    std::string command = std::string("cat ") + hostsFile;
+#endif
+
+    std::cout <<
+        "Contents of " << hostsFile << std::endl <<
+        ExecuteCommand(command.c_str()) << std::endl << std::endl;
 
     return 0;
 }

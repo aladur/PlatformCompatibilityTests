@@ -33,6 +33,7 @@ jobs:
             echo "==== timestamp" `date`
             pkg_add -I -u -v
             pkg_add -I -v sudo-- pkglocatedb libtool cmake ninja git
+            sed -i "s/\(localhost\)/\1 myhost.serverfarm.com/" /etc/hosts
             echo "==== timestamp" `date`
 
           run: |
@@ -78,7 +79,8 @@ jobs:
             sudo -u user sh -ec '
               cd .build
               echo "==== timestamp" `date`
-              ./src/PlatformCompatibilityTests
+              ./src/PlatformCompatibilityTests localhost
+              ./src/PlatformCompatibilityTests myhost.serverfarm.com
               ./test/PCTUnittest
               ldd src/PlatformCompatibilityTests
               echo "==== timestamp" `date`

@@ -32,6 +32,9 @@ jobs:
           brew untap aws/tap
           brew install gnu-sed
           echo "/opt/homebrew/opt/gnu-sed/libexec/gnubin" >> $GITHUB_PATH
+          echo "127.0.0.1 localhost myhost.serverfarm.com" | sudo tee -a /etc/hosts > /dev/null
+          sudo dscacheutil -flushcache
+          sudo killall -HUP mDNSResponder || true
 
       - name: Context
         run: |
@@ -68,7 +71,8 @@ jobs:
       - name: Test
         run: |
           cd .build
-          ./src/PlatformCompatibilityTests
+          ./src/PlatformCompatibilityTests localhost
+          ./src/PlatformCompatibilityTests myhost.serverfarm.com
           ./test/PCTUnittest
           otool -L src/PlatformCompatibilityTests
 
